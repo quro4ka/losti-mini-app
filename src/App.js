@@ -3,6 +3,7 @@ import bridge from '@vkontakte/vk-bridge'
 import { Icon24Fire } from '@vkontakte/icons'
 import Select from 'react-select'
 import CardRasp from './components/CardRasp/CardRasp'
+import moment from 'moment/moment'
 import {
   Title,
   Text,
@@ -66,7 +67,6 @@ const colourStylesEvents = {
     backgroundColor: 'rgba(226, 226, 226, 1)',
   }),
   option: (styles, { data, isDisabled, isFocused, isSelected }) => {
-    // const color = chroma(data.color)
     return {
       ...styles,
       color: 'white',
@@ -78,13 +78,15 @@ const colourStylesEvents = {
 }
 
 const App = () => {
-  const [stateEvents, setStateEvents] = useState([])
-  const { sizeX } = useAdaptivityConditionalRender()
   const platform = usePlatform()
   const { viewWidth } = useAdaptivityConditionalRender()
   const [activeStory, setActiveStory] = React.useState('main')
   const onStoryChange = (e) => setActiveStory(e.currentTarget.dataset.story)
   const isVKCOM = platform !== Platform.VKCOM
+
+  // EVENT-SORT
+  const [stateEvents, setStateEvents] = useState([])
+  const [selectedSort, setSelectedSort] = useState('')
 
   const [days, setDays] = useState([
     'Понедельник',
@@ -148,6 +150,26 @@ const App = () => {
     setEventId(id)
   }
 
+  const sortEvents = (sort) => {
+    setSelectedSort(sort?.value)
+    console.log('====================================')
+    console.log(sort?.value)
+    console.log('====================================')
+    if (sort?.value === 'hot') {
+      setStateEvents([...stateEvents].sort((a, b) => b[sort?.value] - a[sort?.value]))
+    }
+
+    if (sort?.value === 'date') {
+      setStateEvents(
+        [...stateEvents].sort((a, b) => new Date(a[sort?.value]) - new Date(b[sort?.value])),
+      )
+    }
+
+    console.log('====================================')
+    console.log('stateEvents', stateEvents)
+    console.log('====================================')
+  }
+
   return (
     <ConfigProvider>
       <AdaptivityProvider>
@@ -195,10 +217,15 @@ const App = () => {
                             alignItems: 'center',
                             justifyContent: 'space-between',
                             width: '100%',
-                            marginTop: 20,
+                            marginTop: 30,
                           }}>
                           <h1>Мероприятия</h1>
-                          <Select options={optionsSortEvents} styles={colourStylesEvents} />
+                          <Select
+                            value={selectedSort}
+                            onChange={sortEvents}
+                            options={optionsSortEvents}
+                            styles={colourStylesEvents}
+                          />
                         </div>
                       </CardGrid>
                       <CardGrid size="m">
@@ -208,19 +235,28 @@ const App = () => {
                               <Card>
                                 <div
                                   style={{
+                                    // width: 120,
+                                    // height: 168,
                                     display: 'flex',
                                     flexDirection: 'column',
                                     alignItems: 'center',
+                                    justifyContent: 'center',
                                     padding: '10px',
                                     objectFit: 'cover',
                                     opacity: 0.8,
+                                    // background: 'gray',
+                                    blur: 1,
                                   }}>
                                   <div>
-                                    <h3 style={{ textAlign: 'center' }}>{event.title}</h3>
+                                    <h3>{event.title}</h3>
                                     <div style={{ marginBottom: '20px' }}>Место: {event.place}</div>
-                                    <Button onClick={() => openPopup(event)}>Open</Button>
+                                    <Button
+                                      style={{ width: '100%', minWidth: 50, maxWidth: 100 }}
+                                      onClick={() => openPopup(event)}>
+                                      Open
+                                    </Button>
                                   </div>
-                                  {event.hot && (
+                                  {event.hot === 1 && (
                                     <Icon24Fire
                                       style={{
                                         position: 'absolute',
