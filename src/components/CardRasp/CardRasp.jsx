@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, {useEffect, useState} from 'react'
 import s from './CardRasp.module.scss'
 import {
   Button,
@@ -13,7 +13,7 @@ import {
   Panel,
   SubnavigationButton,
   Text,
-  Title,
+  Title, Tooltip,
 } from '@vkontakte/vkui'
 import { Icon24Place } from '@vkontakte/icons'
 import { Icon24ArticleBoxOutline } from '@vkontakte/icons'
@@ -21,17 +21,21 @@ import { Icon24UserSquareOutline } from '@vkontakte/icons'
 import { Icon20EditCircleFillBlue } from '@vkontakte/icons'
 import { Popover } from '@vkontakte/vkui/dist/components/Popover/Popover'
 import { Icon24ListAddOutline } from '@vkontakte/icons'
+import bridge from "@vkontakte/vk-bridge";
 const styleGroup = {
+  boxSizing: 'border-box',
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
   width: '20%',
 }
 const styleGroup2 = {
+  boxSizing: 'border-box',
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'space-between',
   height: '100%',
+  width: '100%'
 }
 const text = {
   margin: '10px 0',
@@ -40,14 +44,37 @@ const text = {
   padding: 4,
   borderRadius: 6,
 }
-const CardRasp = ({ audit, teacher, discipline, end, start, number }) => {
+const CardRasp = ({ audit, teacher, discipline, end, start, number,todo,setTodo,importance }) => {
   const [shown, setShown] = useState(false)
+  const [tooltip, setTooltip] = React.useState(true);
 
-  const [todo, setTodo] = useState([])
+
+  const FuncImpor = (importance)=>{
+    if(importance === 0){
+      return 'lightgreen'
+    }
+    if(importance === 1){
+      return 'green'
+    }
+    if(importance === 2){
+      return 'yellow'
+    }
+    if(importance === 3){
+      return 'orange'
+
+    }if(importance === 4){
+      return 'red'
+
+    }
+  }
+
+
 
   return (
-    <Group>
-      <CardGrid style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
+
+      <CardGrid
+
+          style={{ display: 'flex', alignItems: 'center', position: 'relative', flexWrap: 'nowrap',padding: 10,border: `1px solid ${FuncImpor(importance)}`,borderRadius: 10,margin: 10}}>
         <div style={styleGroup}>
           <Title level="4" weight="2">
             {start}
@@ -68,7 +95,7 @@ const CardRasp = ({ audit, teacher, discipline, end, start, number }) => {
           </Title>
 
           <Title
-            style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}
+            style={{ display: 'flex', alignItems: 'center',marginBottom: 10, wordBreak: "break-word"}}
             level="5"
             weight="2">
             <Icon24ArticleBoxOutline style={{ marginRight: 5, width: 20, height: 20 }} />
@@ -97,20 +124,20 @@ const CardRasp = ({ audit, teacher, discipline, end, start, number }) => {
               />
             </FormItem>
           }>
-          <Button
+          <SubnavigationButton
             className={s.button}
             size="s"
             style={{
               margin: 0,
               position: 'absolute',
-              top: 20,
-              right: 30,
+              top: 5,
+              right: 5,
             }}>
             Тудушки
-          </Button>
+          </SubnavigationButton>
         </Popover>
       </CardGrid>
-    </Group>
+
   )
 }
 
