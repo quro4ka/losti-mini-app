@@ -220,7 +220,7 @@ const App = () => {
                             alignItems: 'center',
                             justifyContent: 'space-between',
                             width: '100%',
-                            marginTop: !isVKCOM ? 80 : 20,
+                            marginTop: 80,
                           }}>
                           <h1>Мероприятия</h1>
                           <Select

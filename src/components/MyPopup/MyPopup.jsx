@@ -1,8 +1,26 @@
 import React, { useState } from 'react'
-
+import { Spinner, ScreenSpinner } from '@vkontakte/vkui'
 import img from './../../img/hack.png'
+import { Button } from '@vkontakte/vkui'
 
 export const MyPopup = ({ event, setEventPopup }) => {
+  const [loading, setLoading] = useState(null)
+
+  // const handleRecord = () => {
+  //   setLoading(true)
+  // }
+
+  // const clearPopout = () => setLoading(null)
+
+  const handleRecord = () => {
+    setLoading(true)
+
+    setTimeout(() => {
+      setLoading(false)
+      setEventPopup(false)
+    }, 1200)
+  }
+
   return (
     <>
       <div
@@ -36,7 +54,12 @@ export const MyPopup = ({ event, setEventPopup }) => {
             alt="hack"
           />
           <div style={{ padding: 10 }}>
-            <h2>{event.title}</h2>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h2>{event.title}</h2>
+              <Button onClick={handleRecord} style={{ background: 'rgba(67, 183, 100, 0.8)' }}>
+                Записаться
+              </Button>
+            </div>
             <p style={{ fontSize: 18 }}>
               <span style={{ width: 85, display: 'inline-block' }}>Уровень : </span>
               <span style={{ color: 'green', fontWeight: 500 }}>{event.level}</span>
@@ -46,6 +69,11 @@ export const MyPopup = ({ event, setEventPopup }) => {
               <span style={{ color: 'orange', fontWeight: 500 }}>{event.start}</span>
             </p>
             <p>{event.description}</p>
+            {loading && (
+              <div style={{ position: 'absolute', top: '40%', left: '45%' }}>
+                <Spinner size="regular" style={{ margin: '20px 0' }} />
+              </div>
+            )}
           </div>
         </div>
       </div>
