@@ -32,11 +32,19 @@ export const MyPopup = ({ event, setEventPopup }) => {
               borderTopLeftRadius: 7,
               borderTopRightRadius: 7,
             }}
-            src={img}
+            src={event.img}
             alt="hack"
           />
           <div style={{ padding: 10 }}>
             <h2>{event.title}</h2>
+            <p style={{ fontSize: 18 }}>
+              <span style={{ width: 85, display: 'inline-block' }}>Уровень : </span>
+              <span style={{ color: 'green', fontWeight: 500 }}>{event.level}</span>
+            </p>
+            <p>
+              <span style={{ width: 85, display: 'inline-block' }}>Начало : </span>
+              <span style={{ color: 'orange', fontWeight: 500 }}>{event.start}</span>
+            </p>
             <p>{event.description}</p>
           </div>
         </div>

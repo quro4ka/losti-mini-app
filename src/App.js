@@ -56,8 +56,8 @@ import { MyCalendar } from './components/MyCalendar/MyCalendar'
 import { MyPopup } from './components/MyPopup/MyPopup'
 
 const optionsSortEvents = [
-  { value: 'hot', label: 'hot' },
-  { value: 'date', label: 'date' },
+  { value: 'hot', label: 'Hot' },
+  { value: 'date', label: 'Date' },
 ]
 
 const colourStylesEvents = {
@@ -84,6 +84,9 @@ const App = () => {
   const onStoryChange = (e) => setActiveStory(e.currentTarget.dataset.story)
   const isVKCOM = platform !== Platform.VKCOM
 
+  console.log('====================================')
+  console.log('isVKCOM', isVKCOM)
+  console.log('====================================')
   // EVENT-SORT
   const [stateEvents, setStateEvents] = useState([])
   const [selectedSort, setSelectedSort] = useState('')
@@ -217,7 +220,7 @@ const App = () => {
                             alignItems: 'center',
                             justifyContent: 'space-between',
                             width: '100%',
-                            marginTop: 30,
+                            marginTop: !isVKCOM ? 80 : 20,
                           }}>
                           <h1>Мероприятия</h1>
                           <Select
@@ -235,8 +238,6 @@ const App = () => {
                               <Card>
                                 <div
                                   style={{
-                                    // width: 120,
-                                    // height: 168,
                                     display: 'flex',
                                     flexDirection: 'column',
                                     alignItems: 'center',
@@ -244,7 +245,6 @@ const App = () => {
                                     padding: '10px',
                                     objectFit: 'cover',
                                     opacity: 0.8,
-                                    // background: 'gray',
                                     blur: 1,
                                   }}>
                                   <div>
