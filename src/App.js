@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import bridge from '@vkontakte/vk-bridge'
+import { Icon24Fire } from '@vkontakte/icons'
+import Select from 'react-select'
+import CardRasp from './components/CardRasp/CardRasp'
 import {
+  Title,
+  Text,
   View,
   ScreenSpinner,
   AdaptivityProvider,
@@ -31,26 +36,68 @@ import {
   SimpleCell,
   Div,
   CellButton,
+  ButtonGroup,
+  Card,
+  ModalPageHeader,
+  PanelHeaderClose,
 } from '@vkontakte/vkui'
 import '@vkontakte/vkui/dist/vkui.css'
-import { schedule } from './data/schedule'
-import { testDays } from './data/schedule'
-import { MyPagination } from './components/MyPagination/MyPagination'
+import { events } from './data/events'
+import { monday } from './data/schedule'
+import { tuesday } from './data/schedule'
+import { wednesday } from './data/schedule'
+import { thursday } from './data/schedule'
+import { friday } from './data/schedule'
+import { saturday } from './data/schedule'
 import { Icon28NewsfeedOutline, Icon28ServicesOutline } from '@vkontakte/icons'
 import Navigation from './panels/Navigation'
 import { MyCalendar } from './components/MyCalendar/MyCalendar'
+import { MyPopup } from './components/MyPopup/MyPopup'
 
-const days = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота']
+const optionsSortEvents = [
+  { value: 'hot', label: 'hot' },
+  { value: 'date', label: 'date' },
+]
+
+const colourStylesEvents = {
+  control: (styles) => ({
+    ...styles,
+    color: 'white',
+    backgroundColor: 'rgba(226, 226, 226, 1)',
+  }),
+  option: (styles, { data, isDisabled, isFocused, isSelected }) => {
+    // const color = chroma(data.color)
+    return {
+      ...styles,
+      color: 'white',
+      backgroundColor: 'rgba(53, 53, 53, 1)',
+      color: '#FFF',
+      cursor: isDisabled ? 'not-allowed' : 'default',
+    }
+  },
+}
 
 const App = () => {
+  const [stateEvents, setStateEvents] = useState([])
+  const { sizeX } = useAdaptivityConditionalRender()
   const platform = usePlatform()
   const { viewWidth } = useAdaptivityConditionalRender()
   const [activeStory, setActiveStory] = React.useState('main')
   const onStoryChange = (e) => setActiveStory(e.currentTarget.dataset.story)
   const isVKCOM = platform !== Platform.VKCOM
 
+  const [days, setDays] = useState([
+    'Понедельник',
+    'Вторник',
+    'Среда',
+    'Четверг',
+    'Пятница',
+    'Суббота',
+  ])
+
   // ------DAY---------
   const [day, setDay] = useState()
+  const [dayIndex, setDayIndex] = useState(0)
 
   // ---------CALENDAR-------------
   const [valueCalendar, setValueCalendar] = useState(() => new Date())
@@ -64,22 +111,48 @@ const App = () => {
   const [size, setSize] = useState('s')
   const [loading, setLoading] = useState(false)
 
-  const changeDay = valueCalendar.toLocaleDateString().replaceAll('.', '-')
-  //   console.log(valueCalendar.toLocaleDateString().replaceAll('.', '-'))
+  // -----EVENT POPUP -------
+  const [eventPopup, setEventPopup] = useState(false)
+  const [eventId, setEventId] = useState()
 
-  // useEffect(() => {
-  //   fetch(`back/${changeDay}`)
-  //   .then(res => res.json())
-  //   .then(data => setDay(data))
-  // }, [day, valueCalendar])
+  // ------FOR START----------
+  const [activePanel, setActivePanel] = useState('home')
+  const [fetchedUser, setUser] = useState(null)
+  const [popout, setPopout] = useState(<ScreenSpinner size="large" />)
+
+  // const changeDay = valueCalendar.toLocaleDateString().replaceAll('.', '-')
+
+  useEffect(() => {
+    setStateEvents(events)
+  }, [])
+
+  useEffect(() => {
+    setDayIndex(valueCalendar.getDay() - 1)
+  }, [valueCalendar])
+
+  useEffect(() => {
+    async function fetchData() {
+      const user = await bridge.send('VKWebAppGetUserInfo')
+      setUser(user)
+      setPopout(null)
+    }
+    fetchData()
+  }, [])
+
+  const handleDayTitle = (index) => {
+    setDayIndex(index)
+  }
+
+  const openPopup = (id) => {
+    setEventPopup(true)
+    setEventId(id)
+  }
 
   return (
     <ConfigProvider>
       <AdaptivityProvider>
         <AppRoot>
-          <SplitLayout
-            header={!isVKCOM && <PanelHeader separator={false} />}
-            style={{ justifyContent: 'center' }}>
+          <SplitLayout style={{ width: '100%', justifyContent: 'center' }}>
             {viewWidth.tabletPlus && (
               <Navigation
                 viewWidth={viewWidth}
@@ -99,7 +172,7 @@ const App = () => {
                         onClick={onStoryChange}
                         selected={activeStory === 'main'}
                         data-story="main"
-                        text="Главная">
+                        text="Мероприятия">
                         <Icon28NewsfeedOutline />
                       </TabbarItem>
                       <TabbarItem
@@ -114,12 +187,61 @@ const App = () => {
                 }>
                 <View id="main" activePanel="main">
                   <Panel id="main">
-                    <Group style={{ height: '1000px' }}></Group>
+                    <Group style={{ height: '1000px' }}>
+                      <CardGrid size="s">
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            width: '100%',
+                            marginTop: 20,
+                          }}>
+                          <h1>Мероприятия</h1>
+                          <Select options={optionsSortEvents} styles={colourStylesEvents} />
+                        </div>
+                      </CardGrid>
+                      <CardGrid size="m">
+                        {stateEvents &&
+                          stateEvents?.map((event, index) => (
+                            <>
+                              <Card>
+                                <div
+                                  style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    padding: '10px',
+                                    objectFit: 'cover',
+                                    opacity: 0.8,
+                                  }}>
+                                  <div>
+                                    <h3 style={{ textAlign: 'center' }}>{event.title}</h3>
+                                    <div style={{ marginBottom: '20px' }}>Место: {event.place}</div>
+                                    <Button onClick={() => openPopup(event)}>Open</Button>
+                                  </div>
+                                  {event.hot && (
+                                    <Icon24Fire
+                                      style={{
+                                        position: 'absolute',
+                                        left: 10,
+                                        top: 5,
+                                      }}
+                                      color="orange"
+                                    />
+                                  )}
+                                </div>
+                              </Card>
+                            </>
+                          ))}
+                        {eventPopup && <MyPopup setEventPopup={setEventPopup} event={eventId} />}
+                      </CardGrid>
+                    </Group>
                   </Panel>
                 </View>
                 <View id="schedule" activePanel="schedule">
                   <Panel id="schedule">
-                    <Group style={{ height: '1000px' }}>
+                    <Group style={{ height: '1000px', width: '100%' }}>
                       <Div>
                         <Button
                           align={align}
@@ -138,40 +260,212 @@ const App = () => {
                           setValueCalendar={setValueCalendar}
                         />
                       )}
+
+                      {days.map((day, index) => {
+                        return (
+                          <Button
+                            size="s"
+                            onClick={() => handleDayTitle(index)}
+                            style={{
+                              background: `${index === dayIndex ? 'gold' : 'gray'}`,
+                              margin: '5px',
+                            }}>
+                            {day}
+                          </Button>
+                        )
+                      })}
+
                       <Panel id="banner">
                         <Group>
                           <>
-                            {schedule?.rasp.map((el, index) => (
-                              <>
-                                {index === 0 && (
-                                  <Group mode="header">
-                                    <SimpleCell
-                                      indicator={valueCalendar
-                                        .toLocaleDateString()
-                                        .replaceAll('.', '-')}>
-                                      {days[valueCalendar.getDay()]}
-                                    </SimpleCell>
-                                  </Group>
-                                )}
-                                <Banner
-                                  before={
-                                    <div>
-                                      <p>{el.начало}</p>
-                                      <hr />
-                                      <p>{el.конец}</p>
-                                    </div>
-                                  }
-                                  key={el.id}
-                                  style={{ padding: 10 }}
-                                  header={el.дисциплина}
-                                  subheader={el.должность + el.преподаватель}
-                                  text={el.аудитория}
-                                />
-                              </>
-                            ))}
+                            {dayIndex === 0 &&
+                              monday.map((el, index) => (
+                                <>
+                                  {index === 0 && (
+                                    <Group mode="header">
+                                      <SimpleCell
+                                        indicator={
+                                          <Text>
+                                            {valueCalendar
+                                              .toLocaleDateString()
+                                              .replaceAll('.', '-')}
+                                          </Text>
+                                        }>
+                                        <Title>{days[dayIndex]}</Title>
+                                      </SimpleCell>
+                                    </Group>
+                                  )}
+                                  <CardRasp
+                                    number={el.номерЗанятия}
+                                    start={el.начало}
+                                    end={el.конец}
+                                    audit={el.аудитория}
+                                    teacher={
+                                      el.должность
+                                        ? `${el.должность}.${el.преподаватель}`
+                                        : el.преподаватель
+                                    }
+                                    discipline={el.дисциплина}
+                                  />
+                                </>
+                              ))}
+                            {dayIndex === 1 &&
+                              tuesday.map((el, index) => (
+                                <>
+                                  {index === 0 && (
+                                    <Group mode="header">
+                                      <SimpleCell
+                                        indicator={
+                                          <Text>
+                                            {valueCalendar
+                                              .toLocaleDateString()
+                                              .replaceAll('.', '-')}
+                                          </Text>
+                                        }>
+                                        <Title>{days[dayIndex]}</Title>
+                                      </SimpleCell>
+                                    </Group>
+                                  )}
+                                  <CardRasp
+                                    number={el.номерЗанятия}
+                                    start={el.начало}
+                                    end={el.конец}
+                                    audit={el.аудитория}
+                                    teacher={
+                                      el.должность
+                                        ? `${el.должность}.${el.преподаватель}`
+                                        : el.преподаватель
+                                    }
+                                    discipline={el.дисциплина}
+                                  />
+                                </>
+                              ))}
+                            {dayIndex === 2 &&
+                              wednesday.map((el, index) => (
+                                <>
+                                  {index === 0 && (
+                                    <Group mode="header">
+                                      <SimpleCell
+                                        indicator={
+                                          <Text>
+                                            {valueCalendar
+                                              .toLocaleDateString()
+                                              .replaceAll('.', '-')}
+                                          </Text>
+                                        }>
+                                        <Title>{days[dayIndex]}</Title>
+                                      </SimpleCell>
+                                    </Group>
+                                  )}
+                                  <CardRasp
+                                    number={el.номерЗанятия}
+                                    start={el.начало}
+                                    end={el.конец}
+                                    audit={el.аудитория}
+                                    teacher={
+                                      el.должность
+                                        ? `${el.должность}.${el.преподаватель}`
+                                        : el.преподаватель
+                                    }
+                                    discipline={el.дисциплина}
+                                  />
+                                </>
+                              ))}
+                            {dayIndex === 3 &&
+                              thursday.map((el, index) => (
+                                <>
+                                  {index === 0 && (
+                                    <Group mode="header">
+                                      <SimpleCell
+                                        indicator={
+                                          <Text>
+                                            {valueCalendar
+                                              .toLocaleDateString()
+                                              .replaceAll('.', '-')}
+                                          </Text>
+                                        }>
+                                        <Title>{days[dayIndex]}</Title>
+                                      </SimpleCell>
+                                    </Group>
+                                  )}
+                                  <CardRasp
+                                    number={el.номерЗанятия}
+                                    start={el.начало}
+                                    end={el.конец}
+                                    audit={el.аудитория}
+                                    teacher={
+                                      el.должность
+                                        ? `${el.должность}.${el.преподаватель}`
+                                        : el.преподаватель
+                                    }
+                                    discipline={el.дисциплина}
+                                  />
+                                </>
+                              ))}
+                            {dayIndex === 4 &&
+                              friday.map((el, index) => (
+                                <>
+                                  {index === 0 && (
+                                    <Group mode="header">
+                                      <SimpleCell
+                                        indicator={
+                                          <Text>
+                                            {valueCalendar
+                                              .toLocaleDateString()
+                                              .replaceAll('.', '-')}
+                                          </Text>
+                                        }>
+                                        <Title>{days[dayIndex]}</Title>
+                                      </SimpleCell>
+                                    </Group>
+                                  )}
+                                  <CardRasp
+                                    number={el.номерЗанятия}
+                                    start={el.начало}
+                                    end={el.конец}
+                                    audit={el.аудитория}
+                                    teacher={
+                                      el.должность
+                                        ? `${el.должность}.${el.преподаватель}`
+                                        : el.преподаватель
+                                    }
+                                    discipline={el.дисциплина}
+                                  />
+                                </>
+                              ))}
+                            {dayIndex === 5 &&
+                              saturday.map((el, index) => (
+                                <>
+                                  {index === 0 && (
+                                    <Group mode="header">
+                                      <SimpleCell
+                                        indicator={
+                                          <Text>
+                                            {valueCalendar
+                                              .toLocaleDateString()
+                                              .replaceAll('.', '-')}
+                                          </Text>
+                                        }>
+                                        <Title>{days[dayIndex]}</Title>
+                                      </SimpleCell>
+                                    </Group>
+                                  )}
+                                  <CardRasp
+                                    number={el.номерЗанятия}
+                                    start={el.начало}
+                                    end={el.конец}
+                                    audit={el.аудитория}
+                                    teacher={
+                                      el.должность
+                                        ? `${el.должность}.${el.преподаватель}`
+                                        : el.преподаватель
+                                    }
+                                    discipline={el.дисциплина}
+                                  />
+                                </>
+                              ))}
                           </>
                         </Group>
-                        <MyPagination />
                       </Panel>
                     </Group>
                   </Panel>
